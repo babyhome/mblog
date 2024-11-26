@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from "react";
 import '@/types/binance';
 import { Card } from "primereact/card";
+import { DataTable } from 'primereact/datatable'
+import { Column } from 'primereact/column'
 
 interface Order {
   price: string;
@@ -13,7 +15,7 @@ interface OrderBookProps {
 }
 
 const BINANCE_WS_URL: string = 'wss://stream.binance.com:9443/ws';
-const DEPTH_LIMIT: number = 10;
+const DEPTH_LIMIT: number = 5;
 
 const OrderBook: React.FC<OrderBookProps> = ({ symbol }) => {
   const [bids, setBids] = useState<Order[]>([]);
@@ -62,34 +64,6 @@ const OrderBook: React.FC<OrderBookProps> = ({ symbol }) => {
       }));
     };
 
-    // ws.onmessage = (event: MessageEvent) => {
-    //   const data: any = JSON.parse(event.data);
-    //   console.log('onmessage:', data.e);
-      
-    //   if(data.e === 'depthUpdate') {
-    //     setOrderBook(prevOrderBook => {
-    //       // อัพเดทราคาเสนอซื้อ (bids)
-    //       const newBids = [...prevOrderBook.bids];
-    //       data.b.forEach(([price, quantity]) => {
-    //         const priceFloat = parseFloat(price);
-    //         const quantityFloat = parseFloat(quantity);
-    //         const index = newBids.findIndex(bid => bid.price === priceFloat);
-
-    //         if (quantityFloat === 0) {
-    //           if (index !== -1) newBids.splice(index, 1);
-    //         } else {
-    //           if (index !== -1) {
-    //             newBids[index].quantity = quantityFloat;
-    //           } else {
-    //             newBids.push({ price: priceFloat, quantity: quantityFloat });
-    //           }
-    //         }
-    //       });
-
-
-    //     })
-    //   }
-    // }
     ws.onmessage = (event: MessageEvent): void => {
       const data: BinanceWebSocketMessage = JSON.parse(event.data);
       
@@ -133,7 +107,7 @@ const OrderBook: React.FC<OrderBookProps> = ({ symbol }) => {
 
           return {
             bids: newBids.sort((a, b) => b.price - a.price).slice(0, DEPTH_LIMIT),
-            asks: newAsks.sort((a, b) => a.price - b.price).slice(0, DEPTH_LIMIT)
+            asks: newAsks.sort((a, b) => b.price - a.price).slice(0, DEPTH_LIMIT)
           };
         });
       }
@@ -156,28 +130,28 @@ const OrderBook: React.FC<OrderBookProps> = ({ symbol }) => {
   }
 
   return (
-    <div>
+    <div className="flex flex-auto flex-col">
       <h2>Order Book: {symbol.toUpperCase()}</h2>
-      <Card className="max-w-2xl mx-auto" title={symbol?.toUpperCase()}>
-        <h3>Bids</h3>
+      <Card className="max-w-2xl mx-auto my-5" title={symbol?.toUpperCase()}>
+        <h3 className="font-semibold text-center p-3 mt-3">Asks</h3>
+        <div className="space-y-1">
+          {orderBook.asks.map((ask) => (
+            <div key={ask.price} className="grid grid-cols-2 text-red-500">
+              <span>{formatPrice(ask.price)}</span>
+              <span className="text-right">{formatQuantity(ask.quantity)}</span>
+            </div>
+          ))}
+        </div>
+
+        <h3 className="font-semibold text-center p-3">Bids</h3>
         <div className="space-y-1">
           {orderBook.bids.map((bid) => (
-            <div key={bid.price} className="grid grid-cols-2 text-green-500">
+            <div key={bid.price} className="grid grid-cols-2 text-green-700">
               <span>{formatPrice(bid.price)}</span>
               <span className="text-right">{formatQuantity(bid.quantity)}</span>
             </div>
           ))}
         </div>
-
-        <h3>Asks</h3>
-          <div className="space-y-1">
-            {orderBook.asks.map((ask) => (
-              <div key={ask.price} className="grid grid-cols-2 text-red-500">
-                <span>{formatPrice(ask.price)}</span>
-                <span className="text-right">{formatQuantity(ask.quantity)}</span>
-              </div>
-            ))}
-          </div>
       </Card>
     </div>
   )

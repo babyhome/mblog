@@ -29,7 +29,6 @@ export default function RootLayout({
         <main className="flex min-h-screen flex-col items-center w-full p-20 bg-gray-200">
           {children}
         </main>
-        {children}
       </body>
     </html>
   );
